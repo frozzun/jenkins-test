@@ -1,0 +1,50 @@
+services:
+  github-actions-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+#    image: frozzun99/websocket:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/crud
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  mysql:
+    hostname: mysql
+    container_name: mysql
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: crud  # (선택) 기본 생성할 DB 이름
+      MYSQL_USER: user  # (선택) 새로운 사용자
+      MYSQL_PASSWORD: 1234  # (선택) 새로운 사용자의 비밀번호
+      ports:
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent", "-uroot", "-p1234"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_mysql:
